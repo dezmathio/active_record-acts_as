@@ -19,6 +19,22 @@ class Product < ActiveRecord::Base
   end
 end
 
+class BaseUser < ActiveRecord::Base
+  self.table_name = 'user'
+  actable as: :user, class_name: 'BaseUser'
+end
+
+class WeddingUser < ActiveRecord::Base
+  self.table_name = 'user_wedding'
+  acts_as :base_user, as: :user, class_name: 'BaseUser'
+  belongs_to :wedding, touch: true
+end
+
+class Wedding < ActiveRecord::Base
+  self.table_name = 'wedding'
+  has_many :wedding_users
+end
+
 class Payment < ActiveRecord::Base
   belongs_to :payable, polymorphic: true
 end
@@ -78,6 +94,24 @@ end
 
 def initialize_schema
   initialize_database do
+    create_table :user, primary_key: 'user_id' do |t|
+      t.boolean :active_flag, default: false
+      t.string :user_type
+      t.timestamps null: true
+    end
+
+    create_table :user_wedding, primary_key: 'user_id'  do |t|
+      t.integer :wedding_id, foreign_key: true
+      t.string :email
+    end
+
+    add_foreign_key "user_wedding", "user", primary_key: "user_id", name: "FK_USER_WEDDING_USER_ID"
+    add_foreign_key "user_wedding", "wedding", primary_key: "wedding_id", name: "FK_USER_WEDDING_WEDDING_ID"
+
+    create_table :wedding, primary_key: 'wedding_id' do |t|
+      t.boolean :shell_flag, default: false
+    end
+
     create_table :pen_collections do |t|
       t.timestamps null: true
     end

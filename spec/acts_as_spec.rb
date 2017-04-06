@@ -408,6 +408,21 @@ RSpec.describe "ActiveRecord::Base model with #acts_as called" do
 
       expect(Pen.find_by('pens.color' => 'red')).to eq(red_pen)
     end
+
+    context 'submodel has association and we can query by attribute_method?' do
+      it 'returns the user' do
+        wedding_user = WeddingUser.create
+        wedding = Wedding.create(shell_flag: true)
+        wedding.wedding_users << wedding_user
+        relation = WeddingUser.joins(:wedding).where(wedding: { shell_flag: true })
+        expect(relation.first).to eq wedding_user
+      end
+
+      it 'does not return anything' do
+        relation = WeddingUser.joins(:wedding).where(wedding: { shell_flag: true })
+        expect(relation.first).to eq nil
+      end
+    end
   end
 
   context 'Namespaces' do
